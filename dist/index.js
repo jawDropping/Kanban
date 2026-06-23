@@ -1,16 +1,37 @@
-// 2. The Core Class: KanbanBoard
 export class KanbanBoard {
     constructor() {
         this.tasks = [];
         this.nextId = 1;
+        this.STORAGE_KEY = 'kanban-board-data';
+        this.loadFromStorage();
     }
-    // [C] Create
+    saveToStorage() {
+        const dataToSave = {
+            tasks: this.tasks,
+            nextId: this.nextId
+        };
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(dataToSave));
+    }
+    loadFromStorage() {
+        const storedData = localStorage.getItem(this.STORAGE_KEY);
+        if (storedData) {
+            try {
+                const parsed = JSON.parse(storedData);
+                this.tasks = parsed.tasks;
+                this.nextId = parsed.nextId;
+            }
+            catch (e) {
+                console.error("Failed to parse local storage data:", e);
+                this.tasks = [];
+                this.nextId = 1;
+            }
+        }
+    }
     addTask(title, description) {
         try {
             const cleanTitle = title.trim();
-            if (!cleanTitle) {
+            if (!cleanTitle)
                 throw new Error("Task title cannot be empty.");
-            }
             const newTask = {
                 id: this.nextId++,
                 title: cleanTitle,
@@ -18,6 +39,7 @@ export class KanbanBoard {
                 status: 'todo',
             };
             this.tasks.push(newTask);
+            this.saveToStorage();
         }
         catch (error) {
             if (error instanceof Error) {
@@ -27,34 +49,31 @@ export class KanbanBoard {
             throw new Error("An unknown error occurred.");
         }
     }
-    // [R] Read
     getTasksByStatus(status) {
         return this.tasks.filter(task => task.status === status);
     }
     getAllTasks() {
-        // Return a shallow copy as a ReadonlyArray to prevent direct mutation
         return [...this.tasks];
     }
-    // [U] Update
     updateTaskStatus(id, newStatus) {
         const task = this.tasks.find(t => t.id === id);
         if (task) {
             task.status = newStatus;
+            this.saveToStorage();
         }
     }
     updateTaskDetails(id, updates) {
         const task = this.tasks.find(t => t.id === id);
         if (task) {
             Object.assign(task, updates);
+            this.saveToStorage();
         }
     }
-    // [D] Delete
     deleteTask(id) {
         this.tasks = this.tasks.filter(t => t.id !== id);
+        this.saveToStorage();
     }
 }
-// ==========================================
-// 3. Frontend UI & Drag-and-Drop Implementation
 // ==========================================
 const board = new KanbanBoard();
 // DOM References
@@ -67,16 +86,14 @@ const columns = {
     'review': document.getElementById('col-review'),
     'done': document.getElementById('col-done')
 };
-// Handle Form Submission
 form.addEventListener('submit', (e) => {
     e.preventDefault();
     try {
         board.addTask(titleInput.value, descInput.value);
-        form.reset(); // Clear inputs
+        form.reset();
         renderBoard();
     }
     catch (err) {
-        // Error is handled inside addTask's try/catch via alert
     }
 });
 // Render the entire board
@@ -162,11 +179,13 @@ Object.entries(columns).forEach(([status, colElement]) => {
         }
     });
 });
-// Seed data to start UI smoothly
-board.addTask("Setup environment", "Initialize pnpm and create tsconfig.json");
-board.addTask("Write KanbanBoard class", "Implement CRUD operations");
-board.updateTaskStatus(1, "done");
-board.updateTaskStatus(2, "in-progress");
+// Seed data only if the board is completely empty (first time visit)
+if (board.getAllTasks().length === 0) {
+    board.addTask("Setup environment", "Initialize pnpm and create tsconfig.json");
+    board.addTask("Write KanbanBoard class", "Implement CRUD operations");
+    board.updateTaskStatus(1, "done");
+    board.updateTaskStatus(2, "in-progress");
+}
 // Initial render call
 renderBoard();
 //# sourceMappingURL=index.js.map

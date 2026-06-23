@@ -8,6 +8,10 @@ export interface Task {
 export declare class KanbanBoard {
     private tasks;
     private nextId;
+    private readonly STORAGE_KEY;
+    constructor();
+    private saveToStorage;
+    private loadFromStorage;
     addTask(title: string, description: string): void;
     getTasksByStatus(status: ColumnStatus): ReadonlyArray<Task>;
     getAllTasks(): ReadonlyArray<Task>;

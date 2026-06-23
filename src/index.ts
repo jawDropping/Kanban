@@ -1,4 +1,3 @@
-// 1. Type Architecture
 export type ColumnStatus = 'todo' | 'in-progress' | 'review' | 'done';
 
 export interface Task {
@@ -8,18 +7,44 @@ export interface Task {
     status: ColumnStatus;
 }
 
-// 2. The Core Class: KanbanBoard
 export class KanbanBoard {
     private tasks: Task[] = [];
     private nextId: number = 1;
+    private readonly STORAGE_KEY = 'kanban-board-data';
 
-    // [C] Create
+    constructor() {
+        this.loadFromStorage();
+    }
+
+    
+    private saveToStorage(): void {
+        const dataToSave = {
+            tasks: this.tasks,
+            nextId: this.nextId
+        };
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(dataToSave));
+    }
+
+    private loadFromStorage(): void {
+        const storedData = localStorage.getItem(this.STORAGE_KEY);
+        if (storedData) {
+            try {
+                const parsed = JSON.parse(storedData);
+                this.tasks = parsed.tasks;
+                this.nextId = parsed.nextId;
+            } catch (e) {
+                console.error("Failed to parse local storage data:", e);
+                this.tasks = [];
+                this.nextId = 1;
+            }
+        }
+    }
+
+
     public addTask(title: string, description: string): void {
         try {
             const cleanTitle = title.trim();
-            if (!cleanTitle) {
-                throw new Error("Task title cannot be empty.");
-            }
+            if (!cleanTitle) throw new Error("Task title cannot be empty.");
             
             const newTask: Task = {
                 id: this.nextId++,
@@ -29,6 +54,8 @@ export class KanbanBoard {
             };
             
             this.tasks.push(newTask);
+            this.saveToStorage(); 
+
         } catch (error: unknown) {
             if (error instanceof Error) {
                 alert(`Error: ${error.message}`);
@@ -38,21 +65,21 @@ export class KanbanBoard {
         }
     }
 
-    // [R] Read
+
     public getTasksByStatus(status: ColumnStatus): ReadonlyArray<Task> {
         return this.tasks.filter(task => task.status === status);
     }
 
     public getAllTasks(): ReadonlyArray<Task> {
-        // Return a shallow copy as a ReadonlyArray to prevent direct mutation
         return [...this.tasks];
     }
 
-    // [U] Update
+
     public updateTaskStatus(id: number, newStatus: ColumnStatus): void {
         const task = this.tasks.find(t => t.id === id);
         if (task) {
             task.status = newStatus;
+            this.saveToStorage(); 
         }
     }
 
@@ -60,18 +87,19 @@ export class KanbanBoard {
         const task = this.tasks.find(t => t.id === id);
         if (task) {
             Object.assign(task, updates);
+            this.saveToStorage();
         }
     }
 
-    // [D] Delete
+
     public deleteTask(id: number): void {
         this.tasks = this.tasks.filter(t => t.id !== id);
+        this.saveToStorage();
     }
 }
 
 // ==========================================
-// 3. Frontend UI & Drag-and-Drop Implementation
-// ==========================================
+
 
 const board = new KanbanBoard();
 
@@ -87,15 +115,15 @@ const columns: Record<ColumnStatus, HTMLElement> = {
     'done': document.getElementById('col-done') as HTMLElement
 };
 
-// Handle Form Submission
+
 form.addEventListener('submit', (e: Event) => {
     e.preventDefault();
     try {
         board.addTask(titleInput.value, descInput.value);
-        form.reset(); // Clear inputs
+        form.reset();
         renderBoard();
     } catch (err) {
-        // Error is handled inside addTask's try/catch via alert
+        
     }
 });
 
@@ -196,11 +224,13 @@ Object.entries(columns).forEach(([status, colElement]: [string, HTMLElement]) =>
     });
 });
 
-// Seed data to start UI smoothly
-board.addTask("Setup environment", "Initialize pnpm and create tsconfig.json");
-board.addTask("Write KanbanBoard class", "Implement CRUD operations");
-board.updateTaskStatus(1, "done");
-board.updateTaskStatus(2, "in-progress");
+// Seed data only if the board is completely empty (first time visit)
+if (board.getAllTasks().length === 0) {
+    board.addTask("Setup environment", "Initialize pnpm and create tsconfig.json");
+    board.addTask("Write KanbanBoard class", "Implement CRUD operations");
+    board.updateTaskStatus(1, "done");
+    board.updateTaskStatus(2, "in-progress");
+}
 
 // Initial render call
 renderBoard();
