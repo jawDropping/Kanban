@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TypeScript Kanban Board</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Kanban Board</h1>
+        <form id="task-form">
+            <input type="text" id="task-title" placeholder="Task Title..." required>
+            <textarea id="task-desc" placeholder="Task Description..."></textarea>
+            <button type="submit">Add Task</button>
+        </form>
+    </header>
+
+    <main class="board">
+        <div class="column" id="col-todo" data-status="todo">
+            <h2>To Do</h2>
+            <div class="task-container"></div>
+        </div>
+        <div class="column" id="col-in-progress" data-status="in-progress">
+            <h2>In Progress</h2>
+            <div class="task-container"></div>
+        </div>
+        <div class="column" id="col-review" data-status="review">
+            <h2>Review</h2>
+            <div class="task-container"></div>
+        </div>
+        <div class="column" id="col-done" data-status="done">
+            <h2>Done</h2>
+            <div class="task-container"></div>
+        </div>
+    </main>
+
+    <script type="module" src="../dist/index.js"></script>
+</body>
+</html>
