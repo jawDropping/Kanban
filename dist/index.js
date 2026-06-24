@@ -120,6 +120,7 @@ function renderBoard() {
             // Setup Edit Button
             const editBtn = document.createElement('button');
             editBtn.textContent = 'Edit';
+            editBtn.classList.add('edit-btn');
             editBtn.onclick = () => {
                 const newTitle = prompt('Edit Title:', task.title);
                 const newDesc = prompt('Edit Description:', task.description);
@@ -133,6 +134,7 @@ function renderBoard() {
             };
             // Setup Delete Button
             const deleteBtn = document.createElement('button');
+            deleteBtn.classList.add('delete-btn');
             deleteBtn.textContent = 'Delete';
             deleteBtn.onclick = () => {
                 board.deleteTask(task.id);

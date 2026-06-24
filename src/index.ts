@@ -156,6 +156,7 @@ function renderBoard(): void {
             // Setup Edit Button
             const editBtn = document.createElement('button');
             editBtn.textContent = 'Edit';
+            editBtn.classList.add('edit-btn');
             editBtn.onclick = () => {
                 const newTitle = prompt('Edit Title:', task.title);
                 const newDesc = prompt('Edit Description:', task.description);
@@ -171,6 +172,7 @@ function renderBoard(): void {
             // Setup Delete Button
             const deleteBtn = document.createElement('button');
             deleteBtn.textContent = 'Delete';
+            deleteBtn.classList.add('delete-btn');
             deleteBtn.onclick = () => {
                 board.deleteTask(task.id);
                 renderBoard();
