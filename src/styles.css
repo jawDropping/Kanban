@@ -36,6 +36,66 @@ aside {
     text-transform: uppercase;
 }
 
+#login-btn {
+    display: inline-flex;  /* Allows text and image to sit side-by-side */
+    align-items: center;   /* Perfectly vertical alignment */
+    gap: 10px;            /* Space between email text and avatar */
+    
+    position: absolute;
+    top: 14px;
+    right: 24px;
+    z-index: 100;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background-color: transparent;
+    color: #DCCFC0;
+    border: 1px solid #DCCFC0;
+    border-radius: 6px;
+    padding: 10px 16px;
+    cursor: pointer;
+
+    transition: all 0.3s ease;
+}
+
+
+#login-btn:hover {
+    background-color: #DCCFC0;
+    color: #171619; /* High contrast dark text on hover */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px); /* Matches the lift effect of your task form button */
+}
+
+#login-btn:active {
+    transform: translateY(0);
+}
+
+#login-btn.is-logged-in {
+    border: none;
+    box-shadow: none; /* Removes the button shadow for a flatter, integrated navbar look */
+}
+
+
+/* Optional: Smooth subtle background tint on hover when logged in */
+#login-btn.is-logged-in:hover {
+    background-color: rgba(105, 100, 93, 0.31); /* Soft glow using your accent color */
+    color: #DCCFC0;
+    transform: translateY(0); /* Removes the lift effect so it behaves like a menu item */
+    box-shadow: none;
+}
+
+
+.profile-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;      /* This forces the image into a perfect circle */
+    object-fit: cover;       /* Prevents the image from stretching or distorting */
+    border: 1px solid #DCCFC0; /* Delicate accent border matching your site design */
+    background-color: #171619;
+}
+
 #task-form {
     display: flex;
     flex-direction: column;
@@ -44,9 +104,17 @@ aside {
     /* Align items to the top rather than the center so it doesn't float awkwardly */
     justify-content: flex-start;
 }
-#task-form p{
+#task-form div p{
     font-size: 12px;
     color: #a5a4a4;
+    padding: 5px;
+    transition: ease-out 500ms;
+    border-radius: 2px;
+    margin: 4px;
+}
+#task-form div p:hover{
+    background: #302f32;
+    transition: ease-out 700ms;
 }
 
 #task-form input, #task-form textarea {
@@ -107,7 +175,7 @@ aside {
     gap: 20px;
     align-items: flex-start;
     padding: 20px;
-    margin: 50px 0 15px 0;
+    margin: 60px 0 15px 0;
     background-color: #201f22;
     border-radius: 10px;
 }
@@ -130,8 +198,12 @@ aside {
 }
 
 .task-container {
-    min-height: 100%;
+   display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 50px; /* Gives a drop target area even when empty */
     color: #FDF6ED;
+    
 }
 
 .task-card {
@@ -142,6 +214,10 @@ aside {
     box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
     cursor: grab;
     transition: box-shadow 0.2s ease, opacity 0.2s;
+
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
 }
 
 .task-card:active {
@@ -198,6 +274,195 @@ aside {
 .column.drag-over {
     background-color: #171619;
 }
+ /* MODALLLLLLLL */
+
+ /* --- Modal Overlay (Background Darkening) --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(23, 22, 25, 0.85); /* Uses your background color with opacity */
+    backdrop-filter: blur(4px); /* Modern blur effect */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensures it sits on top of everything */
+    
+    /* Hidden by default with smooth transitions */
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+/* Class added by JS to show the modal */
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* --- Modal Content Box --- */
+.modal-content {
+    background-color: #201f22; /* Matches your board backgrounds */
+    padding: 30px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(253, 246, 237, 0.1);
+    position: relative;
+    
+    /* Slide down effect on load */
+    transform: translateY(-20px);
+    transition: transform 0.3s ease;
+}
+
+.modal-overlay.active .modal-content {
+    transform: translateY(0);
+}
+
+/* --- Close Button --- */
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    color: #a5a4a4;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.close-modal:hover {
+    color: #FDF6ED;
+}
+
+/* --- Form Typography & Inputs --- */
+.modal-content h2 {
+    color: #DCCFC0;
+    margin-bottom: 25px;
+    font-size: 20px;
+    text-align: center;
+    letter-spacing: 0.5px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.input-group label {
+    font-size: 12px;
+    color: #a5a4a4;
+    text-transform: uppercase;
+}
+
+.input-group input {
+    padding: 12px 14px;
+    background-color: #171619; /* Darker background to inset the inputs */
+    color: #FDF6ED;
+    border: 1px solid rgba(253, 246, 237, 0.1);
+    border-radius: 6px;
+    outline: none;
+    font-family: inherit;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.input-group input:focus {
+    border-color: #DCCFC0;
+    background-color: #2a282c;
+    box-shadow: 0 0 0 3px rgba(220, 207, 192, 0.15);
+}
+
+/* --- Submit Button --- */
+.submit-login {
+    width: 100%;
+    margin-top: 15px;
+    padding: 12px 15px;
+    background-color: #DCCFC0;
+    color: #171619;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.submit-login:hover {
+    background-color: #FDF6ED;
+    transform: translateY(-2px);
+}
+
+.submit-login:active {
+    transform: translateY(0);
+}
+
+/* logouutttt */
+
+/* --- Logout Modal Specifics --- */
+.logout-text {
+    color: #a5a4a4;
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 25px;
+    line-height: 1.5;
+}
+
+.logout-text strong {
+    color: #FDF6ED; /* Highlights the email address */
+}
+
+.logout-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+/* Action Buttons */
+.cancel-btn, .confirm-btn {
+    flex: 1;
+    padding: 12px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+/* Secondary Button Style */
+.cancel-btn {
+    background-color: transparent;
+    color: #DCCFC0;
+    border: 1px solid #DCCFC0;
+}
+
+.cancel-btn:hover {
+    background-color: rgba(220, 207, 192, 0.1);
+}
+
+/* Primary Destructive Button Style (Matches your delete button) */
+.confirm-btn {
+    background-color: rgba(167, 7, 7, 0.85); 
+    color: #FDF6ED;
+}
+
+.confirm-btn:hover {
+    background-color: rgba(167, 7, 7, 1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.confirm-btn:active {
+    transform: translateY(0);
+}
 
 /* Tablet and smaller desktop screens */
 @media screen and (max-width: 992px) {
@@ -221,7 +486,6 @@ aside {
 /* Mobile phones */
 @media screen and (max-width: 768px) {
     .board {
-        /* Stack the Kanban columns vertically instead of side-by-side */
         flex-direction: column; 
         gap: 15px;
         padding: 15px;
@@ -240,4 +504,5 @@ aside {
     .column:last-child {
         border-bottom: none;
     }
+    
 }

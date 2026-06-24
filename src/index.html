@@ -10,21 +10,46 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    
     <aside>
         <div class="aside_Container">
             <h3>KANBAN BOARD</h3>
         <form id="task-form">
-            <p>Projects</p>
-            <p>Templates</p>
-            <p>Tools</p>
+            <div>
+                
+                <p>Projects</p>
+                <p>Templates</p>
+                <p>Tools</p>
+            </div>
             <input type="text" id="task-title" placeholder="Task Title..." required>
             <textarea id="task-desc" placeholder="Task Description..."></textarea>
             <button type="submit">Add Task</button>
         </form>
         </div> 
     </aside>
+<main>
+    <button id="login-btn">Login</button>
 
-    <main class="board">
+    <div id="login-modal" class="modal-overlay">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2>Welcome Back</h2>
+        
+        <form id="popup-login-form">
+            <div class="input-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" placeholder="Enter your email" required>
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter your password" required>
+            </div>
+            <button type="submit" class="submit-login">Log In</button>
+        </form>
+    </div>
+</div>
+
+    <div class="board">
         <div class="column" id="col-todo" data-status="todo">
             <h2>To Do</h2>
             <div class="task-container"></div>
@@ -41,8 +66,23 @@
             <h2>Done</h2>
             <div class="task-container"></div>
         </div>
-    </main>
-
+        
+    </div>
+    
+</main>
+    
+<div id="logout-modal" class="modal-overlay">
+    <div class="modal-content">
+        <span class="close-logout-modal close-modal">&times;</span>
+        <h2>Log Out</h2>
+        <p class="logout-text">Are you sure you want to log out of <strong id="current-user-email"></strong>?</p>
+        
+        <div class="logout-actions">
+            <button id="cancel-logout" class="cancel-btn">Cancel</button>
+            <button id="confirm-logout" class="confirm-btn">Log Out</button>
+        </div>
+    </div>
+</div>
     <script type="module" src="../dist/index.js"></script>
 </body>
 </html>

@@ -134,8 +134,8 @@ function renderBoard() {
             };
             // Setup Delete Button
             const deleteBtn = document.createElement('button');
-            deleteBtn.classList.add('delete-btn');
             deleteBtn.textContent = 'Delete';
+            deleteBtn.classList.add('delete-btn');
             deleteBtn.onclick = () => {
                 board.deleteTask(task.id);
                 renderBoard();
@@ -181,13 +181,112 @@ Object.entries(columns).forEach(([status, colElement]) => {
         }
     });
 });
-// Seed data only if the board is completely empty (first time visit)
+// Prevent Duplicateeess
 if (board.getAllTasks().length === 0) {
     board.addTask("Setup environment", "Initialize pnpm and create tsconfig.json");
     board.addTask("Write KanbanBoard class", "Implement CRUD operations");
     board.updateTaskStatus(1, "done");
     board.updateTaskStatus(2, "in-progress");
 }
-// Initial render call
 renderBoard();
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Application State (Initialized from localStorage if it exists) ---
+    let currentUserEmail = localStorage.getItem('currentUserEmail') || '';
+    let isLoggedIn = currentUserEmail !== '';
+    // --- DOM Elements: Shared ---
+    const mainActionBtn = document.getElementById('login-btn');
+    // --- DOM Elements: Login Modal ---
+    const loginModal = document.getElementById('login-modal');
+    const closeLoginBtn = document.querySelector('#login-modal .close-modal');
+    const loginForm = document.getElementById('popup-login-form');
+    const emailInput = document.getElementById('email');
+    // --- DOM Elements: Logout Modal ---
+    const logoutModal = document.getElementById('logout-modal');
+    const closeLogoutBtn = document.querySelector('.close-logout-modal');
+    const confirmLogoutBtn = document.getElementById('confirm-logout');
+    const cancelLogoutBtn = document.getElementById('cancel-logout');
+    const currentUserEmailDisplay = document.getElementById('current-user-email');
+    // Helper function to update the button UI based on login state
+    const updateButtonUI = () => {
+        if (!mainActionBtn)
+            return;
+        if (isLoggedIn) {
+            // NEW: Add the class that drops the border
+            mainActionBtn.classList.add('is-logged-in');
+            mainActionBtn.innerHTML = `
+            <span>${currentUserEmail}</span>
+            <img src="https://images.unsplash.com/photo-1701772165288-39c9ef3775c0?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
+                 alt="Profile Picture" 
+                 class="profile-avatar">
+        `;
+            mainActionBtn.style.textTransform = 'none';
+            mainActionBtn.style.padding = '6px 8px 6px 16px';
+        }
+        else {
+            // NEW: Strip the class away when logging out to restore the standard button border
+            mainActionBtn.classList.remove('is-logged-in');
+            mainActionBtn.innerHTML = 'LOGIN';
+            mainActionBtn.style.textTransform = 'uppercase';
+            mainActionBtn.style.padding = '10px 16px';
+        }
+    };
+    // Safety check ensuring all core elements exist
+    if (mainActionBtn && loginModal && logoutModal && loginForm && emailInput) {
+        // Run immediately on page load to restore UI if they were already logged in
+        updateButtonUI();
+        // 1. Handle Top-Right Button Click
+        mainActionBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (isLoggedIn) {
+                if (currentUserEmailDisplay) {
+                    currentUserEmailDisplay.textContent = currentUserEmail;
+                }
+                logoutModal.classList.add('active');
+            }
+            else {
+                loginModal.classList.add('active');
+            }
+        });
+        // 2. Handle Login Submission
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const userEmail = emailInput.value.trim();
+            if (userEmail) {
+                isLoggedIn = true;
+                currentUserEmail = userEmail;
+                // NEW: Save to browser storage
+                localStorage.setItem('currentUserEmail', userEmail);
+                // Update UI
+                updateButtonUI();
+                loginModal.classList.remove('active');
+                loginForm.reset();
+            }
+        });
+        // 3. Handle Logout Confirmation
+        confirmLogoutBtn === null || confirmLogoutBtn === void 0 ? void 0 : confirmLogoutBtn.addEventListener('click', () => {
+            isLoggedIn = false;
+            currentUserEmail = '';
+            // NEW: Clear from browser storage
+            localStorage.removeItem('currentUserEmail');
+            // Reset UI
+            updateButtonUI();
+            logoutModal.classList.remove('active');
+        });
+        // 4. Modal Closing Mechanisms
+        closeLoginBtn === null || closeLoginBtn === void 0 ? void 0 : closeLoginBtn.addEventListener('click', () => loginModal.classList.remove('active'));
+        loginModal.addEventListener('click', (e) => {
+            if (e.target === loginModal)
+                loginModal.classList.remove('active');
+        });
+        closeLogoutBtn === null || closeLogoutBtn === void 0 ? void 0 : closeLogoutBtn.addEventListener('click', () => logoutModal.classList.remove('active'));
+        cancelLogoutBtn === null || cancelLogoutBtn === void 0 ? void 0 : cancelLogoutBtn.addEventListener('click', () => logoutModal.classList.remove('active'));
+        logoutModal.addEventListener('click', (e) => {
+            if (e.target === logoutModal)
+                logoutModal.classList.remove('active');
+        });
+    }
+    else {
+        console.warn('One or more modal elements were not found in the DOM.');
+    }
+});
 //# sourceMappingURL=index.js.map
