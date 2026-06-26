@@ -10,13 +10,12 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    
+
     <aside>
         <div class="aside_Container">
             <h3>KANBAN BOARD</h3>
         <form id="task-form">
             <div>
-                
                 <p>Projects</p>
                 <p>Templates</p>
                 <p>Tools</p>
@@ -25,7 +24,7 @@
             <textarea id="task-desc" placeholder="Task Description..."></textarea>
             <button type="submit">Add Task</button>
         </form>
-        </div> 
+        </div>
     </aside>
 <main>
     <button id="login-btn">Login</button>
@@ -34,7 +33,7 @@
     <div class="modal-content">
         <span class="close-modal">&times;</span>
         <h2>Welcome Back</h2>
-        
+
         <form id="popup-login-form">
             <div class="input-group">
                 <label for="email">Email</label>
@@ -50,33 +49,33 @@
 </div>
 
     <div class="board">
-        <div class="column" id="col-todo" data-status="todo">
-            <h2>To Do</h2>
+        <div class="column column--todo" id="col-todo" data-status="todo">
+            <h2><span class="column-dot"></span>To Do <span class="column-count" data-count-for="col-todo">0</span></h2>
             <div class="task-container"></div>
         </div>
-        <div class="column" id="col-in-progress" data-status="in-progress">
-            <h2>In Progress</h2>
+        <div class="column column--progress" id="col-in-progress" data-status="in-progress">
+            <h2><span class="column-dot"></span>In Progress <span class="column-count" data-count-for="col-in-progress">0</span></h2>
             <div class="task-container"></div>
         </div>
-        <div class="column" id="col-review" data-status="review">
-            <h2>Review</h2>
+        <div class="column column--review" id="col-review" data-status="review">
+            <h2><span class="column-dot"></span>Review <span class="column-count" data-count-for="col-review">0</span></h2>
             <div class="task-container"></div>
         </div>
-        <div class="column" id="col-done" data-status="done">
-            <h2>Done</h2>
+        <div class="column column--done" id="col-done" data-status="done">
+            <h2><span class="column-dot"></span>Done <span class="column-count" data-count-for="col-done">0</span></h2>
             <div class="task-container"></div>
         </div>
-        
+
     </div>
-    
+
 </main>
-    
+
 <div id="logout-modal" class="modal-overlay">
     <div class="modal-content">
         <span class="close-logout-modal close-modal">&times;</span>
         <h2>Log Out</h2>
         <p class="logout-text">Are you sure you want to log out of <strong id="current-user-email"></strong>?</p>
-        
+
         <div class="logout-actions">
             <button id="cancel-logout" class="cancel-btn">Cancel</button>
             <button id="confirm-logout" class="confirm-btn">Log Out</button>

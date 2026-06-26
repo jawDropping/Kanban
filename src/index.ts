@@ -1,10 +1,13 @@
 export type ColumnStatus = 'todo' | 'in-progress' | 'review' | 'done';
+export type Priority = 'high' | 'med' | 'low';
 
 export interface Task {
     id: number;
     title: string;
     description: string;
     status: ColumnStatus;
+    priority: Priority;
+    dueDate?: string; // ISO date string, e.g. "2026-07-01"
 }
 
 export class KanbanBoard {
@@ -16,7 +19,7 @@ export class KanbanBoard {
         this.loadFromStorage();
     }
 
-    
+
     private saveToStorage(): void {
         const dataToSave = {
             tasks: this.tasks,
@@ -32,6 +35,10 @@ export class KanbanBoard {
                 const parsed = JSON.parse(storedData);
                 this.tasks = parsed.tasks;
                 this.nextId = parsed.nextId;
+                // backfill priority for tasks saved before this field existed
+                this.tasks.forEach(t => {
+                    if (!t.priority) t.priority = 'med';
+                });
             } catch (e) {
                 console.error("Failed to parse local storage data:", e);
                 this.tasks = [];
@@ -41,20 +48,22 @@ export class KanbanBoard {
     }
 
 
-    public addTask(title: string, description: string): void {
+    public addTask(title: string, description: string, priority: Priority = 'med', dueDate?: string): void {
         try {
             const cleanTitle = title.trim();
             if (!cleanTitle) throw new Error("Task title cannot be empty.");
-            
+
             const newTask: Task = {
                 id: this.nextId++,
                 title: cleanTitle,
                 description: description.trim(),
                 status: 'todo',
+                priority,
+                ...(dueDate ? { dueDate } : {}),
             };
-            
+
             this.tasks.push(newTask);
-            this.saveToStorage(); 
+            this.saveToStorage();
 
         } catch (error: unknown) {
             if (error instanceof Error) {
@@ -79,7 +88,7 @@ export class KanbanBoard {
         const task = this.tasks.find(t => t.id === id);
         if (task) {
             task.status = newStatus;
-            this.saveToStorage(); 
+            this.saveToStorage();
         }
     }
 
@@ -103,10 +112,12 @@ export class KanbanBoard {
 
 const board = new KanbanBoard();
 
-// DOM References
+
 const form = document.getElementById('task-form') as HTMLFormElement;
 const titleInput = document.getElementById('task-title') as HTMLInputElement;
 const descInput = document.getElementById('task-desc') as HTMLTextAreaElement;
+const priorityInput = document.getElementById('task-priority') as HTMLSelectElement | null;
+const dueDateInput = document.getElementById('task-due') as HTMLInputElement | null;
 
 const columns: Record<ColumnStatus, HTMLElement> = {
     'todo': document.getElementById('col-todo') as HTMLElement,
@@ -119,41 +130,91 @@ const columns: Record<ColumnStatus, HTMLElement> = {
 form.addEventListener('submit', (e: Event) => {
     e.preventDefault();
     try {
-        board.addTask(titleInput.value, descInput.value);
+        const priority = (priorityInput?.value as Priority) || 'med';
+        const dueDate = dueDateInput?.value || undefined;
+        board.addTask(titleInput.value, descInput.value, priority, dueDate);
         form.reset();
         renderBoard();
     } catch (err) {
-        
+
     }
 });
 
+// Returns a human-friendly "due" label, or null if no due date.
+// Also flags whether the task is overdue.
+function getDueInfo(dueDate?: string): { label: string; overdue: boolean } | null {
+    if (!dueDate) return null;
+
+    const due = new Date(dueDate);
+    due.setHours(0, 0, 0, 0);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const diffDays = Math.round((due.getTime() - today.getTime()) / msPerDay);
+
+    if (diffDays < 0) {
+        return { label: 'Overdue', overdue: true };
+    }
+    if (diffDays === 0) {
+        return { label: 'Due today', overdue: false };
+    }
+    if (diffDays === 1) {
+        return { label: '1d left', overdue: false };
+    }
+    return { label: `${diffDays}d left`, overdue: false };
+}
+
 // Render the entire board
 function renderBoard(): void {
-    // 1. Clear out old DOM elements to prevent duplicates
+
+  //prevent duplicatess
     Object.values(columns).forEach((colElement: HTMLElement) => {
         const container = colElement.querySelector('.task-container') as HTMLElement;
         container.innerHTML = '';
     });
 
-    // 2. Map and generate new Task elements
+  ////////
     const statuses: ColumnStatus[] = ['todo', 'in-progress', 'review', 'done'];
-    
+
     statuses.forEach(status => {
         const tasksInStatus = board.getTasksByStatus(status);
         const container = columns[status].querySelector('.task-container') as HTMLElement;
 
+        // Update the column's task count badge, if present
+        const countBadge = columns[status].querySelector('.column-count') as HTMLElement | null;
+        if (countBadge) {
+            countBadge.textContent = tasksInStatus.length.toString();
+        }
+
+        // Empty state when a column has no tasks
+        if (tasksInStatus.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'empty-state';
+            empty.textContent = 'Drop tasks here';
+            container.appendChild(empty);
+            return;
+        }
+
         tasksInStatus.forEach(task => {
             const card = document.createElement('div');
             card.className = 'task-card';
-            card.draggable = true; 
-            
+            card.draggable = true;
+
+            const dueInfo = getDueInfo(task.dueDate);
+            const dueChipHtml = dueInfo
+                ? `<span class="due-chip${dueInfo.overdue ? ' due-chip--overdue' : ''}">${dueInfo.label}</span>`
+                : '';
+
             card.innerHTML = `
+                ${dueChipHtml}
                 <h4>${task.title}</h4>
                 <p>${task.description}</p>
                 <div class="card-actions"></div>
             `;
 
-            // Setup Edit Button
+
             const editBtn = document.createElement('button');
             editBtn.textContent = 'Edit';
             editBtn.classList.add('edit-btn');
@@ -161,15 +222,15 @@ function renderBoard(): void {
                 const newTitle = prompt('Edit Title:', task.title);
                 const newDesc = prompt('Edit Description:', task.description);
                 if (newTitle !== null) {
-                    board.updateTaskDetails(task.id, { 
-                        title: newTitle, 
-                        description: newDesc !== null ? newDesc : task.description 
+                    board.updateTaskDetails(task.id, {
+                        title: newTitle,
+                        description: newDesc !== null ? newDesc : task.description
                     });
                     renderBoard();
                 }
             };
 
-            // Setup Delete Button
+
             const deleteBtn = document.createElement('button');
             deleteBtn.textContent = 'Delete';
             deleteBtn.classList.add('delete-btn');
@@ -182,7 +243,7 @@ function renderBoard(): void {
             actionsDiv.appendChild(editBtn);
             actionsDiv.appendChild(deleteBtn);
 
-            // Drag Start
+
             card.addEventListener('dragstart', (e: DragEvent) => {
                 if (e.dataTransfer) {
                     e.dataTransfer.setData('text/plain', task.id.toString());
@@ -191,7 +252,7 @@ function renderBoard(): void {
                 setTimeout(() => card.classList.add('dragging'), 0);
             });
 
-            // Drag End
+
             card.addEventListener('dragend', () => {
                 card.classList.remove('dragging');
             });
@@ -201,11 +262,30 @@ function renderBoard(): void {
     });
 }
 
-// Setup Drag & Drop Zones
+//i hate drags
+function playDropSound(): void {
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(440, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(220, ctx.currentTime + 0.1);
+
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(ctx.currentTime + 0.15);
+}
+
 Object.entries(columns).forEach(([status, colElement]: [string, HTMLElement]) => {
-    // Required to allow dropping
+
     colElement.addEventListener('dragover', (e: DragEvent) => {
-        e.preventDefault(); 
+        e.preventDefault();
         colElement.classList.add('drag-over');
     });
 
@@ -216,20 +296,24 @@ Object.entries(columns).forEach(([status, colElement]: [string, HTMLElement]) =>
     colElement.addEventListener('drop', (e: DragEvent) => {
         e.preventDefault();
         colElement.classList.remove('drag-over');
-        
+
         const taskIdStr = e.dataTransfer?.getData('text/plain');
         if (taskIdStr) {
             const taskId = parseInt(taskIdStr, 10);
             board.updateTaskStatus(taskId, status as ColumnStatus);
             renderBoard();
+
+    
+            playDropSound();
+            playDropSound();
         }
     });
 });
 
 // Prevent Duplicateeess
 if (board.getAllTasks().length === 0) {
-    board.addTask("Setup environment", "Initialize pnpm and create tsconfig.json");
-    board.addTask("Write KanbanBoard class", "Implement CRUD operations");
+    board.addTask("Setup environment", "Initialize pnpm and create tsconfig.json", 'low');
+    board.addTask("Write KanbanBoard class", "Implement CRUD operations", 'high');
     board.updateTaskStatus(1, "done");
     board.updateTaskStatus(2, "in-progress");
 }
@@ -238,61 +322,55 @@ if (board.getAllTasks().length === 0) {
 renderBoard();
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Application State (Initialized from localStorage if it exists) ---
+
     let currentUserEmail = localStorage.getItem('currentUserEmail') || '';
     let isLoggedIn = currentUserEmail !== '';
 
-    // --- DOM Elements: Shared ---
+
     const mainActionBtn = document.getElementById('login-btn') as HTMLElement | null;
-    
-    // --- DOM Elements: Login Modal ---
+
+
     const loginModal = document.getElementById('login-modal') as HTMLDivElement | null;
     const closeLoginBtn = document.querySelector('#login-modal .close-modal') as HTMLSpanElement | null;
     const loginForm = document.getElementById('popup-login-form') as HTMLFormElement | null;
     const emailInput = document.getElementById('email') as HTMLInputElement | null;
 
-    // --- DOM Elements: Logout Modal ---
     const logoutModal = document.getElementById('logout-modal') as HTMLDivElement | null;
     const closeLogoutBtn = document.querySelector('.close-logout-modal') as HTMLSpanElement | null;
     const confirmLogoutBtn = document.getElementById('confirm-logout') as HTMLButtonElement | null;
     const cancelLogoutBtn = document.getElementById('cancel-logout') as HTMLButtonElement | null;
     const currentUserEmailDisplay = document.getElementById('current-user-email') as HTMLElement | null;
 
-    // Helper function to update the button UI based on login state
+
     const updateButtonUI = () => {
     if (!mainActionBtn) return;
-    
+
     if (isLoggedIn) {
-        // NEW: Add the class that drops the border
         mainActionBtn.classList.add('is-logged-in');
-        
+
         mainActionBtn.innerHTML = `
             <span>${currentUserEmail}</span>
-            <img src="https://images.unsplash.com/photo-1701772165288-39c9ef3775c0?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
-                 alt="Profile Picture" 
+            <img src="https://images.unsplash.com/photo-1701772165288-39c9ef3775c0?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                 alt="Profile Picture"
                  class="profile-avatar">
         `;
         mainActionBtn.style.textTransform = 'none';
-        mainActionBtn.style.padding = '6px 8px 6px 16px'; 
+        mainActionBtn.style.padding = '6px 8px 6px 16px';
     } else {
-        // NEW: Strip the class away when logging out to restore the standard button border
         mainActionBtn.classList.remove('is-logged-in');
-        
+
         mainActionBtn.innerHTML = 'LOGIN';
         mainActionBtn.style.textTransform = 'uppercase';
-        mainActionBtn.style.padding = '10px 16px'; 
+        mainActionBtn.style.padding = '10px 16px';
     }
 };
 
-    // Safety check ensuring all core elements exist
     if (mainActionBtn && loginModal && logoutModal && loginForm && emailInput) {
-        
-        // Run immediately on page load to restore UI if they were already logged in
+
         updateButtonUI();
 
-        // 1. Handle Top-Right Button Click
         mainActionBtn.addEventListener('click', (e: MouseEvent) => {
-            e.preventDefault(); 
+            e.preventDefault();
             if (isLoggedIn) {
                 if (currentUserEmailDisplay) {
                     currentUserEmailDisplay.textContent = currentUserEmail;
@@ -303,41 +381,40 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // 2. Handle Login Submission
         loginForm.addEventListener('submit', (e: Event) => {
-            e.preventDefault(); 
+            e.preventDefault();
             const userEmail = emailInput.value.trim();
 
             if (userEmail) {
                 isLoggedIn = true;
                 currentUserEmail = userEmail;
-                
-                // NEW: Save to browser storage
+
+
                 localStorage.setItem('currentUserEmail', userEmail);
-                
-                // Update UI
+
+
                 updateButtonUI();
-                
+
                 loginModal.classList.remove('active');
                 loginForm.reset();
             }
         });
 
-        // 3. Handle Logout Confirmation
+
         confirmLogoutBtn?.addEventListener('click', () => {
             isLoggedIn = false;
             currentUserEmail = '';
 
-            // NEW: Clear from browser storage
+
             localStorage.removeItem('currentUserEmail');
-            
-            // Reset UI
+
+
             updateButtonUI();
-            
+
             logoutModal.classList.remove('active');
         });
 
-        // 4. Modal Closing Mechanisms
+
         closeLoginBtn?.addEventListener('click', () => loginModal.classList.remove('active'));
         loginModal.addEventListener('click', (e: MouseEvent) => {
             if (e.target === loginModal) loginModal.classList.remove('active');
