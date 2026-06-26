@@ -1,84 +1,436 @@
-* {
+/* ==========================================================================
+   1. Design Tokens
+   ========================================================================== */
+:root {
+    /* Elevation scale — each step one level "lighter" than the last */
+    --clr-bg: #171619;        /* level 0 — page background */
+    --clr-surface: #201f22;   /* level 1 — board, modal overlay surface */
+    --clr-surface-alt: #262529; /* level 2 — column background */
+    --clr-card: #302f32;      /* level 3 — task cards, inputs */
+    --clr-modal: #252327;     /* level 3b — modal content, sits with card */
+
+    /* Text */
+    --clr-text: #fdf6ed;
+    --clr-text-muted: #a5a4a4;
+    --clr-text-faint: rgba(253, 246, 237, 0.6);
+    --clr-text-placeholder: #6a6a6c;
+
+    /* Accent — split into "active" (buttons/CTAs) vs "passive" (headings/borders) */
+    --clr-accent: #dccfc0;            /* primary action color */
+    --clr-accent-hover: #fdf6ed;
+    --clr-accent-passive: #9b9189;    /* dimmer, for headings/labels/icons */
+
+    /* Column identity accents (desaturated, matches palette) */
+    --clr-col-todo: #8aa3b8;     /* muted blue */
+    --clr-col-progress: #c9a063; /* muted amber */
+    --clr-col-review: #a98ab8;   /* muted lavender */
+    --clr-col-done: #7fa888;     /* muted sage */
+
+    /* Priority indicators (cards) */
+    --clr-priority-high: #c97a6f;   /* dusty rose-red */
+    --clr-priority-med: #c9a063;    /* muted amber, reuse */
+    --clr-priority-low: #7fa888;    /* muted sage, reuse */
+
+    /* Semantic action colors — desaturated to match palette */
+    --clr-danger: #b06a62;
+    --clr-danger-hover: #c27f76;
+    --clr-success: #6f9b78;
+    --clr-success-hover: #80ad89;
+
+    /* Borders / overlays */
+    --clr-border: rgba(253, 246, 237, 0.1);
+    --clr-border-faint: rgba(253, 246, 237, 0.03);
+    --clr-overlay: rgba(23, 22, 25, 0.85);
+    --clr-focus-ring: rgba(220, 207, 192, 0.15);
+
+    /* Shadows */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.18);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 6px 12px rgba(0, 0, 0, 0.15);
+    --shadow-modal: 0 10px 25px rgba(0, 0, 0, 0.5);
+
+    /* Radius */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 10px;
+    --radius-pill: 999px;
+
+    /* Spacing */
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 12px;
+    --space-lg: 20px;
+    --space-xl: 24px;
+
+    /* Typography — widened scale for more rhythm */
+    --font-base: "Elms Sans", sans-serif;
+    --fs-xs: 11px;
+    --fs-sm: 13px;
+    --fs-md: 14px;
+    --fs-lg: 16px;   /* card titles, was 18px but used inconsistently — now deliberate */
+    --fs-xl: 20px;
+    --fs-2xl: 24px;  /* section headers */
+    --letter-spacing-wide: 0.5px;
+
+    /* Motion */
+    --transition: all 0.3s ease;
+    --transition-fast: all 0.2s ease;
+}
+
+/* ==========================================================================
+   2. Reset
+   ========================================================================== */
+*,
+*::before,
+*::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: var(--font-base);
 }
 
+/* ==========================================================================
+   3. Layout
+   ========================================================================== */
 body {
-    background-color: #f4f5f7;
-    color: #172b4d;
-    padding: 20px;
+    display: grid;
+    grid-template-columns: minmax(280px, 320px) 1fr;
+    color: var(--clr-text);
+    background-color: var(--clr-bg);
 }
 
-header {
-    margin-bottom: 20px;
-    text-align: center;
+/* ==========================================================================
+   4. Sidebar
+   ========================================================================== */
+.aside_Container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: var(--space-xl) var(--space-lg);
+    background-color: var(--clr-bg);
 }
 
+.aside_Container h3 {
+    margin-bottom: var(--space-lg);
+    padding-bottom: var(--space-md);
+    border-bottom: 1px solid var(--clr-border);
+    color: var(--clr-accent-passive); /* passive accent, not primary */
+    font-size: var(--fs-xs);
+    letter-spacing: var(--letter-spacing-wide);
+    text-align: left;
+    text-transform: uppercase;
+}
+
+/* ==========================================================================
+   5. Login Button / Profile
+   ========================================================================== */
+#login-btn {
+    position: absolute;
+    top: 14px;
+    right: 24px;
+    z-index: 100;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border: 1px solid var(--clr-accent);
+    border-radius: var(--radius-md);
+    background-color: transparent;
+    color: var(--clr-accent);
+    font: inherit;
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    letter-spacing: var(--letter-spacing-wide);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+#login-btn:hover {
+    background-color: var(--clr-accent);
+    color: var(--clr-bg);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-2px);
+}
+
+#login-btn:active {
+    transform: translateY(0);
+}
+
+#login-btn.is-logged-in {
+    border: none;
+    box-shadow: none;
+}
+
+#login-btn.is-logged-in:hover {
+    background-color: rgba(105, 100, 93, 0.31);
+    color: var(--clr-accent);
+    box-shadow: none;
+    transform: translateY(0);
+}
+
+.profile-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--clr-accent);
+    background-color: var(--clr-bg);
+}
+
+/* ==========================================================================
+   6. Task Form
+   ========================================================================== */
 #task-form {
     display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 15px;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: var(--space-lg);
+    height: 100%;
 }
 
-#task-form input, #task-form textarea {
-    padding: 10px;
-    border: 1px solid #dfe1e6;
-    border-radius: 4px;
+#task-form div p {
+    margin: var(--space-xs);
+    padding: 5px;
+    border-radius: 2px;
+    color: var(--clr-text-muted);
+    font-size: var(--fs-xs);
+    transition: var(--transition);
+}
+
+#task-form div p:hover {
+    background-color: var(--clr-card);
+}
+
+#task-form input,
+#task-form textarea,
+#task-form select {
+    padding: var(--space-md) 14px;
+    background-color: var(--clr-surface);
+    color: var(--clr-text);
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius-md);
     outline: none;
+    font: inherit;
+    font-size: var(--fs-md);
+    transition: var(--transition);
+}
+
+#task-form select {
+    cursor: pointer;
+}
+
+#task-form input::placeholder,
+#task-form textarea::placeholder {
+    color: var(--clr-text-placeholder);
+}
+
+#task-form input:focus,
+#task-form textarea:focus,
+#task-form select:focus {
+    background-color: var(--clr-card);
+    border-color: var(--clr-accent);
+    box-shadow: 0 0 0 3px var(--clr-focus-ring);
+}
+
+#task-title {
+    margin-top: 10px;
+    font-weight: 500;
+}
+
+#task-desc {
+    min-height: 200px;
+    resize: none;
+    line-height: 1.6;
+}
+
+/* Priority selector — new, optional. Expects:
+   <select id="task-priority"><option value="high">High</option>...</select>
+   or a row of radio "chips" with class .priority-chip[data-priority="high|med|low"] */
+.priority-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius-pill);
+    color: var(--clr-text-muted);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.priority-chip::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background-color: currentColor;
+}
+
+.priority-chip[data-priority="high"] { color: var(--clr-priority-high); }
+.priority-chip[data-priority="med"]  { color: var(--clr-priority-med); }
+.priority-chip[data-priority="low"]  { color: var(--clr-priority-low); }
+
+.priority-chip.selected {
+    background-color: var(--clr-card);
+    border-color: currentColor;
 }
 
 #task-form button {
-    padding: 10px 15px;
-    background-color: #0052cc;
-    color: white;
+    margin-top: 10px;
+    padding: 12px 15px;
+    background-color: var(--clr-accent);
+    color: var(--clr-bg);
     border: none;
-    border-radius: 4px;
+    border-radius: var(--radius-md);
     cursor: pointer;
-    font-weight: bold;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+    transition: var(--transition);
+    box-shadow: var(--shadow-md);
 }
 
 #task-form button:hover {
-    background-color: #0047b3;
+    background-color: var(--clr-accent-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
 }
 
+#task-form button:active {
+    transform: translateY(0);
+}
+
+/* ==========================================================================
+   7. Board / Columns
+   ========================================================================== */
 .board {
     display: flex;
-    gap: 20px;
+    gap: var(--space-lg);
     align-items: flex-start;
+    padding: var(--space-lg);
+    margin: 60px 0 15px 0;
+    background-color: var(--clr-surface);
+    border-radius: var(--radius-lg);
 }
 
 .column {
     flex: 1;
-    background-color: #ebecf0;
-    border-radius: 6px;
+    width: 100%;
+    min-height: 85vh;
     padding: 10px;
-    min-height: 400px;
-    transition: background-color 0.2s ease;
+    border-radius: var(--radius-md);
+    background-color: var(--clr-surface-alt);
+    border-top: 3px solid transparent; /* identity accent lives here */
+    transition: background-color var(--transition-fast);
 }
+
+.column.drag-over {
+    background-color: var(--clr-bg);
+}
+
+/* Column identity accents — add matching class in markup:
+   <div class="column column--todo"> / column--progress / column--done */
+.column--todo     { border-top-color: var(--clr-col-todo); }
+.column--progress { border-top-color: var(--clr-col-progress); }
+.column--review    { border-top-color: var(--clr-col-review); }
+.column--done      { border-top-color: var(--clr-col-done); }
 
 .column h2 {
-    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-lg);
+    padding-bottom: var(--space-sm);
+    border-bottom: 2px solid var(--clr-border-faint);
+    color: var(--clr-text-muted);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    letter-spacing: 1px;
     text-transform: uppercase;
-    margin-bottom: 15px;
-    padding-left: 5px;
-    color: #5e6c84;
 }
 
+/* Small dot before column title, colored to match the column accent.
+   Add: <h2><span class="column-dot"></span>To Do</h2> */
+.column-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background-color: currentColor;
+}
+
+.column--todo h2     { color: var(--clr-col-todo); }
+.column--progress h2 { color: var(--clr-col-progress); }
+.column--review h2    { color: var(--clr-col-review); }
+.column--done h2      { color: var(--clr-col-done); }
+
+/* Card left-border follows the column it's in */
+.column--todo .task-card     { border-left-color: var(--clr-col-todo); }
+.column--progress .task-card { border-left-color: var(--clr-col-progress); }
+.column--review .task-card    { border-left-color: var(--clr-col-review); }
+.column--done .task-card      { border-left-color: var(--clr-col-done); }
+
+/* Task count badge inside column header */
+.column-count {
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    background-color: var(--clr-card);
+    color: var(--clr-text-muted);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+}
+
+/* ==========================================================================
+   8. Task Cards
+   ========================================================================== */
 .task-container {
-    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 50px;
+    color: var(--clr-text);
+}
+
+/* Empty state placeholder — show when a column has 0 cards.
+   Add: <div class="empty-state">Drop tasks here</div> inside .task-container */
+.empty-state {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100px;
+    margin: var(--space-sm) 0;
+    border: 1.5px dashed var(--clr-border);
+    border-radius: var(--radius-md);
+    color: var(--clr-text-placeholder);
+    font-size: var(--fs-sm);
+    text-align: center;
+    pointer-events: none; /* let drag events pass through to the column */
 }
 
 .task-card {
-    background-color: #ffffff;
-    border-radius: 4px;
-    padding: 15px;
+    position: relative;
     margin-bottom: 10px;
-    box-shadow: 0 1px 2px rgba(9, 30, 66, 0.25);
+    padding: 15px 15px 15px 18px;
+    background-color: var(--clr-card);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--clr-border); /* default; overridden by priority */
+    box-shadow: var(--shadow-sm);
     cursor: grab;
-    transition: box-shadow 0.2s ease, opacity 0.2s;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    transition: box-shadow var(--transition-fast), opacity var(--transition-fast),
+        border-color var(--transition-fast);
+}
+
+.task-card:hover {
+    box-shadow: var(--shadow-lg);
 }
 
 .task-card:active {
@@ -89,15 +441,53 @@ header {
     opacity: 0.5;
 }
 
+/* Border color is set by the parent column, not priority — see section 7 */
+
 .task-card h4 {
-    margin-bottom: 5px;
-    font-size: 16px;
+    margin-bottom: 6px;
+    padding-bottom: 0;
+    color: var(--clr-text);
+    font-size: var(--fs-lg);
+    font-weight: 600;
 }
 
 .task-card p {
-    font-size: 13px;
-    color: #42526e;
+    margin-bottom: 12px;
+    color: var(--clr-text-faint);
+    font-size: var(--fs-sm);
+    line-height: 1.5;
+}
+
+/* Due-date chip — add inside the card:
+   <span class="due-chip">2d left</span> or <span class="due-chip due-chip--overdue"> */
+.due-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     margin-bottom: 10px;
+    padding: 3px 9px;
+    border-radius: var(--radius-pill);
+    background-color: rgba(253, 246, 237, 0.06);
+    color: var(--clr-text-muted);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+}
+
+.due-chip::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--clr-accent-passive);
+}
+
+.due-chip--overdue {
+    background-color: rgba(176, 106, 98, 0.15);
+    color: var(--clr-priority-high);
+}
+
+.due-chip--overdue::before {
+    background-color: var(--clr-priority-high);
 }
 
 .card-actions {
@@ -106,19 +496,248 @@ header {
 }
 
 .card-actions button {
-    background: transparent;
-    border: 1px solid #dfe1e6;
     padding: 4px 8px;
+    border: 0;
     border-radius: 3px;
     cursor: pointer;
-    font-size: 12px;
+    font-size: var(--fs-xs);
+    transition: var(--transition-fast);
 }
 
-.card-actions button:hover {
-    background: #ebecf0;
+.delete-btn {
+    background-color: rgba(176, 106, 98, 0.25);
+    color: var(--clr-danger-hover);
 }
 
-/* Drag hover effect for columns */
-.column.drag-over {
-    background-color: #d3d5db;
+.delete-btn:hover {
+    background-color: var(--clr-danger);
+    color: var(--clr-text);
+}
+
+.edit-btn {
+    background-color: rgba(111, 155, 120, 0.25);
+    color: var(--clr-success-hover);
+}
+
+.edit-btn:hover {
+    background-color: var(--clr-success);
+    color: var(--clr-text);
+}
+
+/* ==========================================================================
+   9. Modal (shared base)
+   ========================================================================== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    background: var(--clr-overlay);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition);
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    position: relative;
+    width: 90%;
+    max-width: 400px;
+    padding: 30px;
+    background-color: var(--clr-modal); /* now consistent with elevation scale */
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-modal);
+    transform: translateY(-20px);
+    transition: transform 0.3s ease;
+}
+
+.modal-overlay.active .modal-content {
+    transform: translateY(0);
+}
+
+.modal-content h2 {
+    margin-bottom: 25px;
+    color: var(--clr-accent);
+    font-size: var(--fs-xl);
+    letter-spacing: var(--letter-spacing-wide);
+    text-align: center;
+}
+
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    color: var(--clr-text-muted);
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color var(--transition-fast);
+}
+
+.close-modal:hover {
+    color: var(--clr-text);
+}
+
+/* ----- Modal form fields ----- */
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    margin-bottom: 16px;
+}
+
+.input-group label {
+    color: var(--clr-text-muted);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+}
+
+.input-group input {
+    padding: 12px 14px;
+    background-color: var(--clr-bg);
+    color: var(--clr-text);
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius-md);
+    outline: none;
+    font: inherit;
+    font-size: var(--fs-md);
+    transition: var(--transition);
+}
+
+.input-group input:focus {
+    background-color: var(--clr-card);
+    border-color: var(--clr-accent);
+    box-shadow: 0 0 0 3px var(--clr-focus-ring);
+}
+
+.submit-login {
+    width: 100%;
+    margin-top: 15px;
+    padding: 12px 15px;
+    background-color: var(--clr-accent);
+    color: var(--clr-bg);
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 700;
+    letter-spacing: var(--letter-spacing-wide);
+    text-transform: uppercase;
+    transition: var(--transition);
+}
+
+.submit-login:hover {
+    background-color: var(--clr-accent-hover);
+    transform: translateY(-2px);
+}
+
+.submit-login:active {
+    transform: translateY(0);
+}
+
+/* ----- Logout modal ----- */
+.logout-text {
+    margin-bottom: 25px;
+    color: var(--clr-text-muted);
+    font-size: var(--fs-md);
+    line-height: 1.5;
+    text-align: center;
+}
+
+.logout-text strong {
+    color: var(--clr-text);
+}
+
+.logout-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.cancel-btn,
+.confirm-btn {
+    flex: 1;
+    padding: 12px 15px;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 700;
+    letter-spacing: var(--letter-spacing-wide);
+    text-transform: uppercase;
+    transition: var(--transition);
+}
+
+.cancel-btn {
+    background-color: transparent;
+    color: var(--clr-accent);
+    border: 1px solid var(--clr-accent);
+}
+
+.cancel-btn:hover {
+    background-color: var(--clr-focus-ring);
+}
+
+.confirm-btn {
+    background-color: var(--clr-danger);
+    color: var(--clr-text);
+}
+
+.confirm-btn:hover {
+    background-color: var(--clr-danger-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.confirm-btn:active {
+    transform: translateY(0);
+}
+
+/* ==========================================================================
+   10. Responsive
+   ========================================================================== */
+@media screen and (max-width: 992px) {
+    body {
+        grid-template-columns: 1fr;
+    }
+
+    .aside_Container {
+        height: auto;
+        padding-bottom: 30px;
+    }
+
+    #task-desc {
+        min-height: 150px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .board {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px;
+        margin: 0;
+        border-radius: 0;
+    }
+
+    .column {
+        width: 100%;
+        min-height: 150px;
+        padding-bottom: 20px;
+        border-left: none;
+        border-bottom: 1px solid #070709;
+    }
+
+    .column:last-child {
+        border-bottom: none;
+    }
 }

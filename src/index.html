@@ -3,38 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Armata&family=Elms+Sans:ital,wght@0,100..900;1,100..900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Zen+Dots&display=swap" rel="stylesheet">
     <title>TypeScript Kanban Board</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header>
-        <h1>Kanban Board</h1>
+
+    <aside>
+        <div class="aside_Container">
+            <h3>KANBAN BOARD</h3>
         <form id="task-form">
+            <div>
+                <p>Projects</p>
+                <p>Templates</p>
+                <p>Tools</p>
+            </div>
             <input type="text" id="task-title" placeholder="Task Title..." required>
             <textarea id="task-desc" placeholder="Task Description..."></textarea>
             <button type="submit">Add Task</button>
         </form>
-    </header>
+        </div>
+    </aside>
+<main>
+    <button id="login-btn">Login</button>
 
-    <main class="board">
-        <div class="column" id="col-todo" data-status="todo">
-            <h2>To Do</h2>
-            <div class="task-container"></div>
-        </div>
-        <div class="column" id="col-in-progress" data-status="in-progress">
-            <h2>In Progress</h2>
-            <div class="task-container"></div>
-        </div>
-        <div class="column" id="col-review" data-status="review">
-            <h2>Review</h2>
-            <div class="task-container"></div>
-        </div>
-        <div class="column" id="col-done" data-status="done">
-            <h2>Done</h2>
-            <div class="task-container"></div>
-        </div>
-    </main>
+    <div id="login-modal" class="modal-overlay">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2>Welcome Back</h2>
 
+        <form id="popup-login-form">
+            <div class="input-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" placeholder="Enter your email" required>
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter your password" required>
+            </div>
+            <button type="submit" class="submit-login">Log In</button>
+        </form>
+    </div>
+</div>
+
+    <div class="board">
+        <div class="column column--todo" id="col-todo" data-status="todo">
+            <h2><span class="column-dot"></span>To Do <span class="column-count" data-count-for="col-todo">0</span></h2>
+            <div class="task-container"></div>
+        </div>
+        <div class="column column--progress" id="col-in-progress" data-status="in-progress">
+            <h2><span class="column-dot"></span>In Progress <span class="column-count" data-count-for="col-in-progress">0</span></h2>
+            <div class="task-container"></div>
+        </div>
+        <div class="column column--review" id="col-review" data-status="review">
+            <h2><span class="column-dot"></span>Review <span class="column-count" data-count-for="col-review">0</span></h2>
+            <div class="task-container"></div>
+        </div>
+        <div class="column column--done" id="col-done" data-status="done">
+            <h2><span class="column-dot"></span>Done <span class="column-count" data-count-for="col-done">0</span></h2>
+            <div class="task-container"></div>
+        </div>
+
+    </div>
+
+</main>
+
+<div id="logout-modal" class="modal-overlay">
+    <div class="modal-content">
+        <span class="close-logout-modal close-modal">&times;</span>
+        <h2>Log Out</h2>
+        <p class="logout-text">Are you sure you want to log out of <strong id="current-user-email"></strong>?</p>
+
+        <div class="logout-actions">
+            <button id="cancel-logout" class="cancel-btn">Cancel</button>
+            <button id="confirm-logout" class="confirm-btn">Log Out</button>
+        </div>
+    </div>
+</div>
     <script type="module" src="../dist/index.js"></script>
 </body>
 </html>
