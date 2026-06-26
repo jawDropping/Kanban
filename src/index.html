@@ -18,10 +18,33 @@
             <div>
                 <p>Projects</p>
                 <p>Templates</p>
-                <p>Tools</p>
+
+                <div class="accordion">
+                    <p class="accordion-trigger" id="tools-toggle" role="button" tabindex="0" aria-expanded="false">
+                        <span>Tools</span>
+                        <span class="accordion-icon">&#9662;</span>
+                    </p>
+                    <div class="accordion-panel" id="tools-panel">
+                        <label class="theme-toggle-row" for="light-mode-toggle">
+                            <span>Light mode</span>
+                            <span class="switch">
+                                <input type="checkbox" id="light-mode-toggle" class="switch-input">
+                                <span class="switch-track">
+                                    <span class="switch-thumb"></span>
+                                </span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
             </div>
             <input type="text" id="task-title" placeholder="Task Title..." required>
             <textarea id="task-desc" placeholder="Task Description..."></textarea>
+            <select id="task-priority">
+                <option value="low">Low priority</option>
+                <option value="med" selected>Medium priority</option>
+                <option value="high">High priority</option>
+            </select>
+            <input type="date" id="task-due">
             <button type="submit">Add Task</button>
         </form>
         </div>
@@ -80,6 +103,37 @@
             <button id="cancel-logout" class="cancel-btn">Cancel</button>
             <button id="confirm-logout" class="confirm-btn">Log Out</button>
         </div>
+    </div>
+</div>
+
+<div id="edit-task-modal" class="modal-overlay">
+    <div class="modal-content">
+        <span class="close-edit-modal close-modal">&times;</span>
+        <h2>Edit Task</h2>
+
+        <form id="edit-task-form">
+            <div class="input-group">
+                <label for="edit-task-title">Title</label>
+                <input type="text" id="edit-task-title" required>
+            </div>
+            <div class="input-group">
+                <label for="edit-task-desc">Description</label>
+                <textarea type="text" id="edit-task-desc"></textarea>
+            </div>
+            <div class="input-group">
+                <label for="edit-task-priority">Priority</label>
+                <select id="edit-task-priority">
+                    <option value="low">Low priority</option>
+                    <option value="med">Medium priority</option>
+                    <option value="high">High priority</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label for="edit-task-due">Due Date</label>
+                <input type="date" id="edit-task-due">
+            </div>
+            <button type="submit" class="submit-login">Save Changes</button>
+        </form>
     </div>
 </div>
     <script type="module" src="../dist/index.js"></script>
