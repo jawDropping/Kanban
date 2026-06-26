@@ -94,6 +94,54 @@ const columns = {
     'review': document.getElementById('col-review'),
     'done': document.getElementById('col-done')
 };
+// Edit modal elements
+const editModal = document.getElementById('edit-task-modal');
+const editForm = document.getElementById('edit-task-form');
+const editTitleInput = document.getElementById('edit-task-title');
+const editDescInput = document.getElementById('edit-task-desc');
+const editPriorityInput = document.getElementById('edit-task-priority');
+const editDueInput = document.getElementById('edit-task-due');
+const closeEditBtn = document.querySelector('.close-edit-modal');
+let taskBeingEdited = null;
+function openEditModal(task) {
+    var _a;
+    taskBeingEdited = task.id;
+    editTitleInput.value = task.title;
+    editDescInput.value = task.description;
+    editPriorityInput.value = task.priority;
+    editDueInput.value = (_a = task.dueDate) !== null && _a !== void 0 ? _a : '';
+    editModal.classList.add('active');
+}
+function closeEditModal() {
+    editModal.classList.remove('active');
+    taskBeingEdited = null;
+    editForm.reset();
+}
+closeEditBtn.addEventListener('click', closeEditModal);
+editModal.addEventListener('click', (e) => {
+    if (e.target === editModal)
+        closeEditModal();
+});
+editForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (taskBeingEdited === null)
+        return;
+    const newTitle = editTitleInput.value.trim();
+    if (!newTitle)
+        return; // title is required, mirrors the add-task validation
+    const newDueDate = editDueInput.value;
+    const updates = {
+        title: newTitle,
+        description: editDescInput.value.trim(),
+        priority: editPriorityInput.value,
+    };
+    if (newDueDate) {
+        updates.dueDate = newDueDate;
+    }
+    board.updateTaskDetails(taskBeingEdited, updates);
+    closeEditModal();
+    renderBoard();
+});
 form.addEventListener('submit', (e) => {
     e.preventDefault();
     try {
@@ -117,16 +165,17 @@ function getDueInfo(dueDate) {
     today.setHours(0, 0, 0, 0);
     const msPerDay = 1000 * 60 * 60 * 24;
     const diffDays = Math.round((due.getTime() - today.getTime()) / msPerDay);
+    const formattedDate = due.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     if (diffDays < 0) {
-        return { label: 'Overdue', overdue: true };
+        return { label: `Overdue \u00b7 ${formattedDate}`, overdue: true };
     }
     if (diffDays === 0) {
-        return { label: 'Due today', overdue: false };
+        return { label: `Due today \u00b7 ${formattedDate}`, overdue: false };
     }
     if (diffDays === 1) {
-        return { label: '1d left', overdue: false };
+        return { label: `1d left \u00b7 ${formattedDate}`, overdue: false };
     }
-    return { label: `${diffDays}d left`, overdue: false };
+    return { label: `${diffDays}d left \u00b7 ${formattedDate}`, overdue: false };
 }
 // Render the entire board
 function renderBoard() {
@@ -162,8 +211,11 @@ function renderBoard() {
                 ? `<span class="due-chip${dueInfo.overdue ? ' due-chip--overdue' : ''}">${dueInfo.label}</span>`
                 : '';
             card.innerHTML = `
+                <span class="priority-badge priority-badge--${task.priority}" title="${task.priority} priority"></span>
                 ${dueChipHtml}
-                <h4>${task.title}</h4>
+                <div class="card-header">
+                    <h4>${task.title}</h4>
+                </div>
                 <p>${task.description}</p>
                 <div class="card-actions"></div>
             `;
@@ -171,15 +223,7 @@ function renderBoard() {
             editBtn.textContent = 'Edit';
             editBtn.classList.add('edit-btn');
             editBtn.onclick = () => {
-                const newTitle = prompt('Edit Title:', task.title);
-                const newDesc = prompt('Edit Description:', task.description);
-                if (newTitle !== null) {
-                    board.updateTaskDetails(task.id, {
-                        title: newTitle,
-                        description: newDesc !== null ? newDesc : task.description
-                    });
-                    renderBoard();
-                }
+                openEditModal(task);
             };
             const deleteBtn = document.createElement('button');
             deleteBtn.textContent = 'Delete';
@@ -206,20 +250,8 @@ function renderBoard() {
     });
 }
 //i hate drags
-function playDropSound() {
-    const ctx = new AudioContext();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(440, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(220, ctx.currentTime + 0.1);
-    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.15);
-}
+const dropSound = new Audio('assets/sounds/drop.mp3');
+dropSound.volume = 0.5;
 Object.entries(columns).forEach(([status, colElement]) => {
     colElement.addEventListener('dragover', (e) => {
         e.preventDefault();
@@ -238,8 +270,11 @@ Object.entries(columns).forEach(([status, colElement]) => {
             board.updateTaskStatus(taskId, status);
             renderBoard();
             // Restart and play in case of rapid consecutive drops
-            playDropSound();
-            playDropSound();
+            dropSound.currentTime = 0;
+            dropSound.play().catch(() => {
+                // Browsers block autoplay until the user has interacted with the page;
+                // a drag-and-drop action counts as interaction, so this should rarely fire.
+            });
         }
     });
 });
@@ -251,6 +286,31 @@ if (board.getAllTasks().length === 0) {
     board.updateTaskStatus(2, "in-progress");
 }
 renderBoard();
+// Accordion + light mode toggle
+const toolsToggle = document.getElementById('tools-toggle');
+const toolsPanel = document.getElementById('tools-panel');
+const lightModeToggle = document.getElementById('light-mode-toggle');
+if (toolsToggle && toolsPanel) {
+    toolsToggle.addEventListener('click', () => {
+        const isOpen = toolsPanel.classList.toggle('open');
+        toolsToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+}
+if (lightModeToggle) {
+    const THEME_KEY = 'kanban-theme';
+    const applyTheme = (isLight) => {
+        document.body.classList.toggle('light-theme', isLight);
+        lightModeToggle.checked = isLight;
+    };
+    // Restore saved preference on load
+    const savedTheme = localStorage.getItem(THEME_KEY);
+    applyTheme(savedTheme === 'light');
+    lightModeToggle.addEventListener('change', () => {
+        const isLight = lightModeToggle.checked;
+        applyTheme(isLight);
+        localStorage.setItem(THEME_KEY, isLight ? 'light' : 'dark');
+    });
+}
 document.addEventListener('DOMContentLoaded', () => {
     let currentUserEmail = localStorage.getItem('currentUserEmail') || '';
     let isLoggedIn = currentUserEmail !== '';

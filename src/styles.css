@@ -320,7 +320,7 @@ body {
 .column {
     flex: 1;
     width: 100%;
-    min-height: 85vh;
+    min-height: 600px;
     padding: 10px;
     border-radius: var(--radius-md);
     background-color: var(--clr-surface-alt);
@@ -450,6 +450,30 @@ body {
     font-size: var(--fs-lg);
     font-weight: 600;
 }
+
+/* Header row now just holds the title — badge moves to an absolute-positioned ribbon */
+.card-header {
+    margin-bottom: 6px;
+}
+
+.card-header h4 {
+    margin-bottom: 0;
+    padding-right: 22px; /* keep title text clear of the ribbon */
+}
+
+/* Bookmark-style priority ribbon, top-right corner of the card */
+.priority-badge {
+    position: absolute;
+    top: 0;
+    right: 14px;
+    width: 14px;
+    height: 20px;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
+}
+
+.priority-badge--high { background-color: var(--clr-priority-high); }
+.priority-badge--med  { background-color: var(--clr-priority-med); }
+.priority-badge--low  { background-color: var(--clr-priority-low); }
 
 .task-card p {
     margin-bottom: 12px;
@@ -645,6 +669,14 @@ body {
     transform: translateY(0);
 }
 
+#edit-task-desc{
+    min-height: 100px;
+    resize: none;
+    line-height: 1.6;
+    padding: 10px;
+    font-size: 12px;
+}
+
 /* ----- Logout modal ----- */
 .logout-text {
     margin-bottom: 25px;
@@ -700,6 +732,161 @@ body {
 
 .confirm-btn:active {
     transform: translateY(0);
+}
+
+
+/* ==========================================================================
+   11. Accordion (Tools / Light mode toggle)
+   ========================================================================== */
+.accordion-trigger {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+ 
+.accordion-icon {
+    display: inline-block;
+    transition: transform var(--transition-fast);
+}
+ 
+.accordion-trigger[aria-expanded="true"] .accordion-icon {
+    transform: rotate(180deg);
+}
+ 
+.accordion-panel {
+    max-height: 0;
+    overflow: hidden;
+    border-radius: 2px;
+    transition: max-height 0.9s ease, background-color var(--transition-fast);
+}
+ 
+.accordion-panel.open {
+    transition: ease-in-out 300ms;
+    max-height: 80px;
+    background-color: var(--clr-card);
+}
+ 
+.theme-toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: var(--space-xs);
+    padding: 2px;
+    color: var(--clr-text-muted);
+    font-size: var(--fs-xs);
+    cursor: pointer;
+}
+ 
+/* Visually hide the native checkbox but keep it accessible/clickable */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 32px;
+    height: 18px;
+}
+ 
+.switch-input {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 1;
+}
+ 
+.switch-track {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius-pill);
+    background-color: var(--clr-surface);
+    transition: var(--transition-fast);
+}
+ 
+.switch-thumb {
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background-color: var(--clr-text-muted);
+    transition: var(--transition-fast);
+}
+ 
+.switch-input:checked + .switch-track {
+    background-color: var(--clr-accent);
+    border-color: var(--clr-accent);
+}
+ 
+.switch-input:checked + .switch-track .switch-thumb {
+    left: 15px;
+    background-color: var(--clr-bg);
+}
+ 
+.switch-input:focus-visible + .switch-track {
+    box-shadow: 0 0 0 3px var(--clr-focus-ring);
+}
+ 
+/* ==========================================================================
+   12. Light Theme
+   ========================================================================== */
+body.light-theme {
+    /* --- Backgrounds & Surfaces --- */
+    --clr-bg: #D2C4B4;           /* From palette: Warm cream base */
+    --clr-surface: #F3E3D0;      /* Pure white for cards/modals to pop */
+    --clr-surface-alt: #F9EFE3;  /* A 50% lighter mix of the cream for column backgrounds */
+    --clr-card: #f6f4f0;
+    --clr-modal: #ffffff;
+ 
+    /* --- Typography --- */
+    /* Deep charcoal-blue to ensure high readability while matching the blue accents */
+    --clr-text: #2D3A45; 
+    --clr-text-muted: #6B7A8A; 
+    --clr-text-faint: rgba(45, 58, 69, 0.6);
+    --clr-text-placeholder: #3f444a;
+ 
+    /* --- Main Accents --- */
+    --clr-accent: #81A6C6;       /* From palette: Primary slate blue */
+    --clr-accent-hover: #6B92B5; /* Slightly darkened for hover states */
+    --clr-accent-passive: #49585f; /* From palette: Light blue for secondary highlights */
+ 
+    /* --- Column Identity (Muted & Desaturated to match the vibe) --- */
+    --clr-col-todo: #81A6C6;     /* Slate blue */
+    --clr-col-progress: #C8A98B; /* Muted warm sand/ochre */
+    --clr-col-review: #A69CB8;   /* Muted lavender/grey */
+    --clr-col-done: #9DB4A0;     /* Muted sage green */
+
+    /* --- Priority Indicators --- */
+    --clr-priority-high: #C68A81; /* Muted brick/coral */
+    --clr-priority-med: #C8A98B;  /* Matches progress sand */
+    --clr-priority-low: #9DB4A0;  /* Matches done sage */
+
+    /* --- Semantic Actions --- */
+    --clr-danger: #C68A81;
+    --clr-danger-hover: #B37971;
+    --clr-success: #9DB4A0;
+    --clr-success-hover: #8AA48D;
+
+    /* --- Borders & Overlays --- */
+    /* Using your palette's Taupe (#D2C4B4) for elegant, soft borders */
+    --clr-border: #D2C4B4;
+    --clr-border-faint: rgba(210, 196, 180, 0.4);
+    --clr-overlay: rgba(45, 58, 69, 0.5); /* Charcoal overlay for modals */
+    
+    /* Focus ring uses the light blue (#AACDDC) */
+    --clr-focus-ring: rgba(170, 205, 220, 0.4);
+ 
+    /* --- Shadows (Tinted with the Taupe/Charcoal) --- */
+    --shadow-sm: 0 2px 8px rgba(45, 58, 69, 0.05);
+    --shadow-md: 0 4px 6px rgba(45, 58, 69, 0.07);
+    --shadow-lg: 0 6px 12px rgba(45, 58, 69, 0.09);
+    --shadow-modal: 0 10px 25px rgba(45, 58, 69, 0.15);
 }
 
 /* ==========================================================================
